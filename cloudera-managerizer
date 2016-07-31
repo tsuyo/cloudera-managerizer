@@ -1,0 +1,85 @@
+#!/usr/bin/env python
+
+import getopt, sys, os, csv
+
+def usage():
+    print "%s [-v] [-g] --region <region>" % sys.argv[0], \
+    "--key-name <key-name> --image-id <image-id> --db-pass <db-pass>", \
+    "[--cluster <cluster.csv>]"
+
+def main():
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "hr:k:i:c:d:vg",
+        ["help", "region=", "key-name=", "image-id=", "cluster=", "db-pass="])
+    except getopt.GetoptError as err:
+        # print help information and exit:
+        print str(err)  # will print something like "option -a not recognized"
+        usage()
+        sys.exit(1)
+
+    verbose = False
+    generate_only = False
+    region = None
+    key_name = None
+    db_pass = None
+    image_id = "ami-c74789a9" # default image: centos 7.2
+    cluster = "cluster.csv" # default csv name
+
+    for o, a in opts:
+        if o == "-v":
+            verbose = True
+        elif o == "-g":
+            generate_only = True
+        elif o in ("-h", "--help"):
+            usage()
+            sys.exit()
+        elif o in ("-r", "--region"):
+            region = a
+        elif o in ("-k", "--key-name"):
+            key_name = a
+        elif o in ("-i", "--image-id"):
+            image_id = a
+        elif o in ("-c", "--cluster"):
+            cluster = a
+        elif o in ("-d", "--db-pass"):
+            db_pass = a
+        else:
+            assert False, "unhandled option"
+
+    if region == None or key_name == None:
+        usage()
+        sys.exit()
+
+    if verbose:
+        print "region:   ", region
+        print "key_name: ", key_name
+        print "image_id: ", image_id
+        print "cluster:  ", cluster
+        print "db_pass:  ", db_pass
+
+    rows = []
+    with open (cluster) as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        for row in reader:
+            if len(row) <= 8 or (len(row[0].strip()) > 0 and row[0].strip()[0] == '#'):
+                # skip illegal entry or comment
+                continue
+            modrow = [r.strip() for r in row]
+            modrow[-1] = " ".join([ "Key=%s,Value=%s" % tuple(pair.split('=')) for pair in modrow[-1].split(' ') ])
+            rows.append(modrow)
+    hosts = ["%s   %s" % (row[1], row[2]) for row in rows]
+
+    generator_base = "./generator.sh -r %s -h %s -c '%s'"
+    launch_instance_aws = "./launch-instance-aws.sh %s %s %s %s"
+    for row in rows:
+        generator = generator_base
+        if row[0] == "server":
+            generator += " -p " + db_pass
+        # build user-data shell
+        os.system(generator % (row[0], row[2], "\n".join(hosts)))
+        if not generate_only:
+            os.system(launch_instance_aws % (region, image_id, key_name, ' '.join(row)))
+            os.system("rm cloudera-managerizer-*.sh")
+
+if __name__ == "__main__":
+    main()
