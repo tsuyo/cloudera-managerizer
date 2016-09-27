@@ -73,6 +73,8 @@ installAndConfigDB() {
   mysql -e "CREATE DATABASE sentry DEFAULT CHARACTER SET utf8"
   mysql -e "CREATE DATABASE nav DEFAULT CHARACTER SET utf8"
   mysql -e "CREATE DATABASE navms DEFAULT CHARACTER SET utf8"
+  mysql -e "CREATE DATABASE oozie DEFAULT CHARACTER SET utf8"
+  mysql -e "CREATE DATABASE hue DEFAULT CHARACTER SET utf8"
   mysql -e "GRANT ALL ON scm.* TO 'scm'@'%' identified by 'scm_password'"
   mysql -e "GRANT ALL ON amon.* TO 'amon'@'%' identified by 'amon_password'"
   mysql -e "GRANT ALL ON rman.* TO 'rman'@'%' identified by 'rman_password'"
@@ -80,6 +82,8 @@ installAndConfigDB() {
   mysql -e "GRANT ALL ON sentry.* TO 'sentry'@'%' identified by 'sentry_password'"
   mysql -e "GRANT ALL ON nav.* TO 'nav'@'%' identified by 'nav_password'"
   mysql -e "GRANT ALL ON navms.* TO 'navms'@'%' identified by 'navms_password'"
+  mysql -e "GRANT ALL ON oozie.* TO 'oozie'@'%' identified by 'oozie'"
+  mysql -e "GRANT ALL ON hue.* TO 'hue'@'%' identified by 'secretpassword'"
   # the following 5 equals 'mysql_secure_installation'
   mysql -e "UPDATE mysql.user SET Password = PASSWORD(\"${MYSQL_PASS}\") WHERE User = 'root'"
   mysql -e "DROP USER ''@'localhost'"

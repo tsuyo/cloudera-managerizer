@@ -2,6 +2,8 @@
 datadir=/var/lib/mysql
 socket=/var/lib/mysql/mysql.sock
 transaction-isolation = READ-COMMITTED
+# For Hue
+sql_mode=STRICT_ALL_TABLES
 # Disabling symbolic-links is recommended to prevent assorted security risks;
 # to do so, uncomment this line:
 # symbolic-links = 0
